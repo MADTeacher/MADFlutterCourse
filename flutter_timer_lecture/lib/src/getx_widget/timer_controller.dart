@@ -6,14 +6,11 @@ import 'package:get/get.dart';
 class TimerController extends GetxController {
   Timer? _timer;
   final int waitTimeInSec;
-  late int _currentWaitTimeInSec;
-  var percent = 1.0.obs;
-  var timeStr = '05:00'.obs;
+  late Rx<int> _currentWaitTimeInSec;
   var isRun = false.obs;
 
   TimerController(this.waitTimeInSec) {
-    _currentWaitTimeInSec = waitTimeInSec;
-    _calculationTime();
+    _currentWaitTimeInSec = Rx<int>(waitTimeInSec);
   }
 
   @override
@@ -26,8 +23,7 @@ class TimerController extends GetxController {
     if (_currentWaitTimeInSec > 0) {
       isRun.value = true;
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        _currentWaitTimeInSec -= 1;
-        _calculationTime();
+        _currentWaitTimeInSec.value -= 1;
         if (_currentWaitTimeInSec <= 0) {
           pause();
           Get.showSnackbar(GetBar(
@@ -42,8 +38,7 @@ class TimerController extends GetxController {
   }
 
   void restart() {
-    _currentWaitTimeInSec = waitTimeInSec;
-    _calculationTime();
+    _currentWaitTimeInSec.value = waitTimeInSec;
   }
 
   void pause() {
@@ -51,10 +46,13 @@ class TimerController extends GetxController {
     isRun.value = false;
   }
 
-  void _calculationTime() {
-    var minuteStr = (_currentWaitTimeInSec ~/ 60).toString().padLeft(2, '0');
-    var secondStr = (_currentWaitTimeInSec % 60).toString().padLeft(2, '0');
-    percent.value = _currentWaitTimeInSec / waitTimeInSec;
-    timeStr.value = '$minuteStr:$secondStr';
+  String get timeStr {
+    var minuteStr =
+        (_currentWaitTimeInSec.value ~/ 60).toString().padLeft(2, '0');
+    var secondStr =
+        (_currentWaitTimeInSec.value % 60).toString().padLeft(2, '0');
+    return '$minuteStr:$secondStr';
   }
+
+  double get percent => _currentWaitTimeInSec.value / waitTimeInSec;
 }
